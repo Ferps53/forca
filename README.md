@@ -2,6 +2,8 @@
 
 ## Trabalho prático de jogo da forca
 
+by: Felipe Brostolin Ribeiro (Ferps53) & Matheus Otavio Holdys Ris (OverheatZero) 
+
 1. Introdução
 
 > Este trabalho tem como objetivo a criação de um programa em linguagem C de um jogo da forca.
