@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+
+#define LIMITE_DE_PALAVRAS 20
+#define ARQUIVO_PALAVRAS "palavras.bin"
+
+typedef struct {
+  char conteudo_da_palavra[20]; //Tem que ver isso aqui ainda
+  int tamanho_da_palavra; //Provavel q tenha tbm
+} Palavras;
+
+void verificacao_escolha_menu(int escolha_menu);
+int escolha_menu_principal();
+void ver_palavras_disponiveis();
+char* pegar_palavras();
+
+int escolha_menu_principal(){
+  int escolha_menu;
+  printf("1.Novo jogo\n");
+  printf("2.Continuar\n");
+  printf("3.Ver palavras\n");
+  printf("4.Adicionar palavra\n");
+  printf("5.Editar palavras\n");
+  printf("6.Deletar palavras\n");
+  printf("7.Sair\n");
+  scanf("%d", &escolha_menu);
+  verificacao_escolha_menu(escolha_menu);
+  return escolha_menu;
+}
+
+void verificacao_escolha_menu (int escolha_menu){
+  if(escolha_menu != 1 && escolha_menu  != 2 && escolha_menu != 3 && escolha_menu
+   != 4 && escolha_menu != 5 && escolha_menu != 6 && escolha_menu != 7){
+    printf("Insira uma op��o v�lida!\n");
+    escolha_menu_principal();
+   }
+}
+
+void ver_palavras_disponiveis() {
+  FILE *palavras_adicionadas = fopen("palavras_adicionadas.txt", "rb");
+  if(palavras_adicionadas == NULL) {
+    printf("Erro na abertura do arquivo\n");
+    exit(1);
+  }
+}
+
+char* pegar_palavras(){
+  char *palavra;
+  scanf( "%s", *palavra);
+  printf("%s", *palavra);
+  return palavra;
+}
+int main(){
+  setlocale(LC_ALL, "Portuguese");
+  printf("Ol�! Por favor selecione uma op��o:\n");
+  int escolha_menu = escolha_menu_principal();
+  if(escolha_menu == 7){
+    pegar_palavras();
+    printf("Saindo... At� mais!\n");
+    return 0;
+  }
+}
