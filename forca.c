@@ -1,2 +1,7 @@
 
-int main() { return 0; }
+#include <stdio.h>
+
+int main() {
+    printf("Iniciando projeto");
+    return 0;
+}
