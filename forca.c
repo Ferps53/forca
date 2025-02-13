@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <threads.h>
 
 #define LIMITE_DE_PALAVRAS 10
 #define ARQUIVO_PALAVRAS "palavras.bin"
@@ -11,7 +12,8 @@ typedef struct palavra {
   int tamanho;
 } Palavra;
 
-// Cache de palavras -> Segundo o Mestre Erinaldo isso é mais eficiente que ler do disco;
+// Cache de palavras -> Segundo o Mestre Erinaldo isso é mais eficiente que ler
+// do disco;
 typedef struct palavras {
   Palavra palavras_arquivo[LIMITE_DE_PALAVRAS];
   int quantidade_atual;
@@ -23,7 +25,7 @@ Palavras palavras;
 void verificacao_escolha_menu(int escolha_menu);
 int escolha_menu_principal();
 void ver_palavras_disponiveis();
-char *pegar_palavras();
+char *ler_palavra_usuario();
 Palavra criar_nova_palavra(char *string);
 
 int escolha_menu_principal() {
@@ -43,7 +45,7 @@ void verificacao_escolha_menu(int escolha_menu) {
   if (escolha_menu != 1 && escolha_menu != 2 && escolha_menu != 3 &&
       escolha_menu != 4 && escolha_menu != 5 && escolha_menu != 6 &&
       escolha_menu != 7) {
-    printf("Insira uma op��o v�lida!\n");
+    printf("Insira uma opção válida\n");
     escolha_menu_principal();
   }
 }
@@ -67,35 +69,32 @@ void ler_palavras_arquivo() {
 
   fclose(arquivo);
 }
-//Ta salvando um monte de lixo do arquivo que n devia(????) e muito espaço em branco
 void exibir_palavras() {
-  char car;
-  FILE *arquivo = fopen(ARQUIVO_PALAVRAS, "rb");
-  rewind(arquivo);
-  printf("Pera eu to escrevendo aqui?");
-  while ((car = fgetc(arquivo)) != EOF) {
-    if (car == '\0') {
-      printf("\n");
-    }
-    printf("%c", car);
 
+  if (palavras.quantidade_atual <= 0) {
+    printf("Em questão de palavras, não temos palavras");
   }
-  fclose(arquivo);
 
+  for (int i = 0; i < palavras.quantidade_atual; i++) {
+    Palavra palavra = palavras.palavras_arquivo[i];
+    printf("%d. %s\n", i + 1, palavra.string);
+  }
 }
 void escrever_palavras() {
-  char *string = calloc(15, sizeof(char));
+  char *string = ler_palavra_usuario();
 
-  fscanf(stdin, " %s", string);
+  if (string == NULL) {
+    return;
+  }
 
   Palavra palavra = criar_nova_palavra(string);
 
-  //Adiciona no final do vetor do struct
+  // Adiciona no final do vetor do struct
   palavras.palavras_arquivo[palavras.quantidade_atual] = palavra;
   palavras.quantidade_atual++;
 
-  //Limpa o arquivo para adicionar as palavras da forma certa;
-  //Append não funcionou aqui
+  // Limpa o arquivo para adicionar as palavras da forma certa;
+  // Append não funcionou aqui
   FILE *arquivo = fopen(ARQUIVO_PALAVRAS, "wb");
 
   if (arquivo == NULL) {
@@ -104,6 +103,9 @@ void escrever_palavras() {
   }
 
   fwrite(&palavras, sizeof(Palavras), 1, arquivo);
+
+  free(string);
+  string = NULL;
 
   fclose(arquivo);
   arquivo = NULL;
@@ -132,46 +134,54 @@ Palavra criar_nova_palavra(char *string) {
 
   Palavra palavra;
 
-  //Merito de Matheus Ris
-  //A falta de um strcpy me fez ficar 30min tentando resolver um segfault
-  // Palavra palavra = {string, tamanho} -> n funcionava
+  // Merito de Matheus Ris
+  // A falta de um strcpy me fez ficar 30min tentando resolver um segfault
+  //  Palavra palavra = {string, tamanho} -> n funcionava
   strcpy(palavra.string, string);
   palavra.tamanho = tamanho;
 
   return palavra;
 }
 
-char *pegar_palavras() {
-  char *palavra = malloc(sizeof(char));
-  scanf("%[^\n]s", palavra);
-  printf("%s", palavra);
+char *ler_palavra_usuario() {
+  char *palavra = calloc(15, sizeof(char));
+
+  if (palavra == NULL) {
+    return NULL;
+  }
+
+  // Evita espaços nas palavras do jogo
+  scanf(" %s", palavra);
   return palavra;
 }
 
 int main() {
-  //ler_palavras_arquivo();
+  ler_palavras_arquivo();
   setlocale(LC_ALL, "Portuguese");
   printf("Olá! Por favor selecione uma opção:\n");
-  int escolha_menu = escolha_menu_principal();
+  int escolha_menu = 0;
 
-  switch (escolha_menu) {
+  while (escolha_menu != 6) {
+    escolha_menu = escolha_menu_principal();
+    switch (escolha_menu) {
 
-  case 1:
-  case 3:
-  case 4:
-  case 5:
-  case 6:
-    break;
+    case 1:
+    case 4:
+    case 5:
+    case 6:
+      break;
 
-  case 2: {
-    escrever_palavras();
-    exibir_palavras();
-    break;
+    case 3: {
+      exibir_palavras();
+      break;
+    }
+
+    case 2: {
+      escrever_palavras();
+      break;
+    }
+    }
   }
-  }
-
-  if (escolha_menu == 6) {
-    printf("Saindo... Até mais!\n");
-    exit(0);
-  }
+  printf("Saindo... Até mais!\n");
+  exit(0);
 }
