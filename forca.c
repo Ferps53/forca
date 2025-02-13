@@ -67,7 +67,22 @@ void ler_palavras_arquivo() {
 
   fclose(arquivo);
 }
+//Ta salvando um monte de lixo do arquivo que n devia(????) e muito espaço em branco
+void exibir_palavras() {
+  char car;
+  FILE *arquivo = fopen(ARQUIVO_PALAVRAS, "rb");
+  rewind(arquivo);
+  printf("Pera eu to escrevendo aqui?");
+  while ((car = fgetc(arquivo)) != EOF) {
+    if (car == '\0') {
+      printf("\n");
+    }
+    printf("%c", car);
 
+  }
+  fclose(arquivo);
+
+}
 void escrever_palavras() {
   char *string = calloc(15, sizeof(char));
 
@@ -134,7 +149,7 @@ char *pegar_palavras() {
 }
 
 int main() {
-  ler_palavras_arquivo();
+  //ler_palavras_arquivo();
   setlocale(LC_ALL, "Portuguese");
   printf("Olá! Por favor selecione uma opção:\n");
   int escolha_menu = escolha_menu_principal();
@@ -150,12 +165,13 @@ int main() {
 
   case 2: {
     escrever_palavras();
+    exibir_palavras();
     break;
   }
   }
 
   if (escolha_menu == 6) {
     printf("Saindo... Até mais!\n");
-    return 0;
+    exit(0);
   }
 }
