@@ -1,0 +1,11 @@
+- Recursao no menu
+- Ordenar o menu segundo os requisitos do professor
+- Validar a quantidade de palavras antes de jogar
+- Validar o tamanho da palavra, precisa ser maior que 5
+- Validar palavras duplicadas
+- Mostrar palavras,
+- Atualizar palavra -> Usar o indice da palavra para alterar na var global palavras e salvar o arquivo novamente, é um bom momento de separar a func de escrever_palavras;
+- Rand para sortear as palavras
+- Fazer o jogo
+- Limpar o código
+- Colocar comentários nas gambiarras
