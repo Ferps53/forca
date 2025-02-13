@@ -9,3 +9,4 @@
 - Fazer o jogo
 - Limpar o código
 - Colocar comentários nas gambiarras
+- Tratar memory leaks
