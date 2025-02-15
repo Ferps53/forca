@@ -278,6 +278,8 @@ void o_jogo() { // Sim, você perdeu.
   }
 
   int contador_de_tentativas = 6;
+  int pontuacao = 0;
+  int acertos_consecutivos = 0;
   while (contador_de_tentativas > 0) {
     char palpite_letra;
     printf("Advinhe uma letra da palavra: ");
@@ -295,18 +297,34 @@ void o_jogo() { // Sim, você perdeu.
 
     int acertou = validar_acertos(palpite_letra, palavra_secreta.string, 0);
 
-    if (acertou == 0) {
-      contador_de_tentativas--;
-    } else {
+    if (acertou) {
+      acertos_consecutivos++;
+      printf("%d\n", acertos_consecutivos);
       preencher_palpites(palpite_letra, palpite_palavra, palavra_secreta.string,
                          tamanho_da_palavra);
       printf("Muito bem!\n");
+      pontuacao = (pontuacao + 10) * acertos_consecutivos;
+    } else {
+      acertos_consecutivos = 0;
+      contador_de_tentativas--;
+      pontuacao = pontuacao - 5;
+      printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
     }
     printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
 
     if (strcmp(palpite_palavra, palavra_secreta.string) == 0) {
       printf("Meus parabéns! Você ganhou!\n");
-      return;
+      if (contador_de_tentativas == 6) {
+        printf("Uau! Você conseguiu adivinhar a palavra sem errar nenhuma "
+               "letra!\n");
+        pontuacao = pontuacao + 300;
+        printf("Pontuação Final: %d Pontos.\nObrigado por jogar!\n", pontuacao);
+        return;
+      } else {
+        printf("Pontuação Final: %d Pontos.\n Obrigado por jogar!\n\n",
+               pontuacao);
+        return;
+      }
     }
     printf("%s\n", palpite_palavra);
     printf("Letras usadas: ");
@@ -316,12 +334,14 @@ void o_jogo() { // Sim, você perdeu.
     printf("\n");
   }
   printf("Você Perdeu! Acabaram suas tentativas!\n");
-  printf("A palavra era: %s.\n\n", palavra_secreta.string);
+  printf("A palavra era: %s.\n", palavra_secreta.string);
+  printf("Pontuação Final:%d\nObrigado por jogar!\n\n", pontuacao);
 }
 
 int main() {
-  ler_palavras_arquivo();
+
   setlocale(LC_ALL, "Portuguese");
+  ler_palavras_arquivo();
   printf("Olá! Por favor selecione uma opção:\n");
   int escolha_menu = 0;
 
