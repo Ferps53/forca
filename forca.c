@@ -17,7 +17,7 @@ typedef struct palavra {
 // Cache de palavras -> Segundo o Mestre Erinaldo isso é mais eficiente que ler
 // do disco;
 typedef struct palavras {
-  Palavra palavras_arquivo[LIMITE_DE_PALAVRAS];
+  Palavra palavras_arquivo[100];
   int quantidade_atual;
 } Palavras;
 
@@ -91,17 +91,27 @@ void exibir_palavras() {
     printf("%d. %s\n", i + 1, palavra.string);
   }
 }
-void escrever_palavras() {
+
+int nova_palavra_usuario(Palavra *palavra) {
   char *string = ler_palavra_usuario();
 
   if (string == NULL) {
-    return;
+    return 0;
   }
-  Palavra palavra = criar_nova_palavra(string);
+  *palavra = criar_nova_palavra(string);
 
-  // Adiciona no final do vetor do struct
-  palavras.palavras_arquivo[palavras.quantidade_atual] = palavra;
-  palavras.quantidade_atual++;
+  free(string);
+  string = NULL;
+
+  if (palavra->tamanho < 5) {
+    printf("A palavra deve ter no mínimo 5 letras para ser cadastrada\n");
+    return 0;
+  }
+
+  return 1;
+}
+
+void salvar_buffer_palavras_arquivo() {
 
   // Limpa o arquivo para adicionar as palavras da forma certa;
   // Append não funcionou aqui
@@ -114,11 +124,22 @@ void escrever_palavras() {
 
   fwrite(&palavras, sizeof(Palavras), 1, arquivo);
 
-  free(string);
-  string = NULL;
-
   fclose(arquivo);
   arquivo = NULL;
+}
+
+void escrever_palavras() {
+  Palavra palavra;
+
+  if (nova_palavra_usuario(&palavra) == 0) {
+    return;
+  }
+
+  // Adiciona no final do vetor do struct
+  palavras.palavras_arquivo[palavras.quantidade_atual] = palavra;
+  palavras.quantidade_atual++;
+
+  salvar_buffer_palavras_arquivo();
 }
 
 int calcular_tamanho_palavra(char *string) {
@@ -166,12 +187,9 @@ char *ler_palavra_usuario() {
 
 int gerar_numero_da_palavra_aleatoria() {
   srand(time(NULL));
-  int numero_aleatorio = rand() % 11;
-  do {
-    if (numero_aleatorio > palavras.quantidade_atual - 1) {
-      numero_aleatorio = rand() % 11;
-    }
-  } while (numero_aleatorio > palavras.quantidade_atual - 1);
+
+  int numero_aleatorio = rand() % palavras.quantidade_atual;
+
   printf("%d\n", numero_aleatorio);
   printf("Quantidade atual de palavras: %d\n", palavras.quantidade_atual);
   return numero_aleatorio;
@@ -255,8 +273,7 @@ void preencher_palpites(char palpite, char *palpite_palavra,
 
 // A strcmp n funcionava com palavras com 5 de tamanho,
 // por isso essa função foi feita
-int validar_palavras_iguais(char *s1, char *s2,
-                            int tamanho_da_palavra_secreta) {
+int jagura_cmp(char *s1, char *s2, int tamanho_da_palavra_secreta) {
 
   for (int i = 0; s2[i] != '\0'; i++) {
 
@@ -290,11 +307,12 @@ void o_jogo() { // Sim, você perdeu.
   printf("Essa palavra eh a passada pro jogo: %s\n", palavra_secreta.string);
 
   const int tamanho_da_palavra = palavra_secreta.tamanho;
-  char palpite_palavra[tamanho_da_palavra];
+  char palpite_palavra[tamanho_da_palavra + 1];
 
   for (int i = 0; i < tamanho_da_palavra; i++) {
     palpite_palavra[i] = '_';
   }
+  palpite_palavra[tamanho_da_palavra + 1] = '\0';
 
   printf("Hora de Adivinhar. Você tem 6 tentativas...\n");
   printf("%s\n", palpite_palavra);
@@ -343,8 +361,8 @@ void o_jogo() { // Sim, você perdeu.
 
     printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
 
-    if (validar_palavras_iguais(palpite_palavra, palavra_secreta.string,
-                                palavra_secreta.tamanho)) {
+    if (jagura_cmp(palpite_palavra, palavra_secreta.string,
+                   palavra_secreta.tamanho)) {
       printf("Meus parabéns! Você ganhou!\n");
       if (contador_de_tentativas == 6) {
         printf("Uau! Você conseguiu adivinhar a palavra sem errar nenhuma "
