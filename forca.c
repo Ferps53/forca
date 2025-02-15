@@ -253,8 +253,38 @@ void preencher_palpites(char palpite, char *palpite_palavra,
   }
 }
 
+// A strcmp n funcionava com palavras com 5 de tamanho,
+// por isso essa função foi feita
+int validar_palavras_iguais(char *s1, char *s2,
+                            int tamanho_da_palavra_secreta) {
+
+  for (int i = 0; s2[i] != '\0'; i++) {
+
+    if (i > tamanho_da_palavra_secreta) {
+
+      printf("Algo deu errado!\n");
+      printf("for passou do tamanho_da_palavra_secreta\n");
+      exit(1);
+    }
+
+    if (s1[i] != s2[i]) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
 void o_jogo() { // Sim, você perdeu.
                 // Nãããão, eu perdi o jogoooooo!
+  if (palavras.quantidade_atual < LIMITE_DE_PALAVRAS) {
+    printf("São necessárias no mínimo %d palavras para poder jogar\n",
+           LIMITE_DE_PALAVRAS);
+    printf("No momento faltam: %d\n",
+           LIMITE_DE_PALAVRAS - palavras.quantidade_atual);
+    return;
+  }
+
   Palavra palavra_secreta = definir_palavra_aleatoria();
 
   printf("Essa palavra eh a passada pro jogo: %s\n", palavra_secreta.string);
@@ -310,9 +340,11 @@ void o_jogo() { // Sim, você perdeu.
       pontuacao = pontuacao - 5;
       printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
     }
+
     printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
 
-    if (strcmp(palpite_palavra, palavra_secreta.string) == 0) {
+    if (validar_palavras_iguais(palpite_palavra, palavra_secreta.string,
+                                palavra_secreta.tamanho)) {
       printf("Meus parabéns! Você ganhou!\n");
       if (contador_de_tentativas == 6) {
         printf("Uau! Você conseguiu adivinhar a palavra sem errar nenhuma "
