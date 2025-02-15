@@ -1,3 +1,4 @@
+#include <complex.h>
 #include <ctype.h>
 #include <locale.h>
 #include <stdio.h>
@@ -162,6 +163,47 @@ void atualizar_palavra() {
   }
 
   palavras.palavras_arquivo[id - 1] = palavra;
+  salvar_buffer_palavras_arquivo();
+}
+
+void deletar_palavra() {
+
+  int id = 0;
+  exibir_palavras();
+  printf("Selecione o código de uma palavra que quiser deletar: ");
+  scanf(" %d", &id);
+  printf("\n");
+
+  if (id == 0 || id > palavras.quantidade_atual) {
+    printf("O código inserido está inválido, tente novamente\n");
+    deletar_palavra();
+    return;
+  }
+
+  // Na tela inicia conta começando do um
+  id -= 1;
+
+  char *string = palavras.palavras_arquivo[id].string;
+
+  char confirmacao;
+  printf("Tem certeza que quer deletar a palavra: %s?\n", string);
+  printf("S ou N: ");
+  scanf(" %c", &confirmacao);
+  printf("\n");
+
+  if ('S' != toupper(confirmacao)) {
+    printf("Operação cancelada\n");
+    return;
+  }
+
+  printf("Deletando palavra: %s...\n", string);
+
+  // Move os elementos de baixo do id selecionado para uma posição a frente e remove o id selecionado
+  memmove(palavras.palavras_arquivo + id, palavras.palavras_arquivo + id + 1,
+          (100 - id) * sizeof(*palavras.palavras_arquivo));
+
+  palavras.quantidade_atual--;
+
   salvar_buffer_palavras_arquivo();
 }
 
@@ -443,8 +485,10 @@ int main() {
       break;
     }
 
-    case 5:
+    case 5: {
+      deletar_palavra();
       break;
+    }
     }
   }
   printf("Saindo... Até mais!\n");

@@ -5,10 +5,11 @@
 - Validar palavras duplicadas
 - Mostrar palavras -Done-
 - Atualizar palavra -> Usar o indice da palavra para alterar na var global palavras e salvar o arquivo novamente, é um bom momento de separar a func de escrever_palavras -Done-
+- Deletar palavra -Done-
 - Rand para sortear as palavras -Done-
 - Fazer o jogo -Done-
 - Limpar o código
-- Colocar comentários nas gambiarras
+- Colocar comentários nas gambiarras -Done-
 - Tratar memory leaks -Done-
 - Implementar Pontuação -Done-
 - Evitar case-sensitive -Done-
