@@ -128,7 +128,7 @@ void salvar_buffer_palavras_arquivo() {
   arquivo = NULL;
 }
 
-void escrever_palavras() {
+void adicionar_palavra() {
   Palavra palavra;
 
   if (nova_palavra_usuario(&palavra) == 0) {
@@ -139,6 +139,29 @@ void escrever_palavras() {
   palavras.palavras_arquivo[palavras.quantidade_atual] = palavra;
   palavras.quantidade_atual++;
 
+  salvar_buffer_palavras_arquivo();
+}
+
+void atualizar_palavra() {
+
+  int id = 0;
+  exibir_palavras();
+  printf("Selecione o código de uma palavra que deseje alterar: ");
+  scanf(" %d", &id);
+  printf("\n");
+
+  if (id == 0 || id > palavras.quantidade_atual) {
+    printf("O código inserido está inválido, tente novamente\n");
+    atualizar_palavra();
+    return;
+  }
+
+  Palavra palavra;
+  if (nova_palavra_usuario(&palavra) == 0) {
+    return;
+  }
+
+  palavras.palavras_arquivo[id - 1] = palavra;
   salvar_buffer_palavras_arquivo();
 }
 
@@ -180,6 +203,7 @@ char *ler_palavra_usuario() {
   if (palavra == NULL) {
     return NULL;
   }
+  printf("Digite uma palavra, com no mínimo 5 letras: ");
   // Evita espaços nas palavras do jogo
   scanf(" %s", palavra);
   return palavra;
@@ -410,11 +434,15 @@ int main() {
     }
 
     case 3: {
-      escrever_palavras();
+      adicionar_palavra();
       break;
     }
 
-    case 4:
+    case 4: {
+      atualizar_palavra();
+      break;
+    }
+
     case 5:
       break;
     }
