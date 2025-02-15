@@ -1,15 +1,15 @@
-- Recursao no menu
-- Ordenar o menu segundo os requisitos do professor
+- Recursao no menu -done-
+- Ordenar o menu segundo os requisitos do professor -done-
 - Validar a quantidade de palavras antes de jogar
 - Validar o tamanho da palavra, precisa ser maior que 5
 - Validar palavras duplicadas
-- Mostrar palavras,
+- Mostrar palavras -done-
 - Atualizar palavra -> Usar o indice da palavra para alterar na var global palavras e salvar o arquivo novamente, é um bom momento de separar a func de escrever_palavras;
 - Rand para sortear as palavras -Done-
 - Fazer o jogo -Done-
 - Limpar o código
 - Colocar comentários nas gambiarras
 - Tratar memory leaks
-- Implementar Pontuação
+- Implementar Pontuação -done-
 - Evitar case-sensitive
 -Arrumar o Locale
