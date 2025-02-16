@@ -380,8 +380,6 @@ void o_jogo() { // Sim, você perdeu.
 
   Palavra palavra_secreta = definir_palavra_aleatoria();
 
-  printf("Essa palavra eh a passada pro jogo: %s\n", palavra_secreta.string);
-
   const int tamanho_da_palavra = palavra_secreta.tamanho;
   char palpite_palavra[tamanho_da_palavra + 1];
 
