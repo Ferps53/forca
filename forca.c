@@ -32,6 +32,7 @@ Palavra criar_nova_palavra(char *string);
 
 int escolha_menu_principal() {
   int escolha_menu;
+  printf("Menu principal:\n");
   printf("1.Novo jogo\n");
   printf("2.Ver palavras\n");
   printf("3.Adicionar palavra\n");
@@ -52,21 +53,17 @@ void verificacao_escolha_menu(int escolha_menu) {
 }
 
 void ler_palavras_arquivo() {
-
   FILE *arquivo = fopen(ARQUIVO_PALAVRAS, "rb");
 
   if (arquivo == NULL) {
     arquivo = fopen(ARQUIVO_PALAVRAS, "wb");
-
     if (arquivo == NULL) {
       printf("Falha ao ler arquivo ;(\n");
       exit(1);
     }
-
     fclose(arquivo);
     ler_palavras_arquivo();
   }
-
   Palavras palavras_temp;
   if (fread(&palavras_temp, sizeof(Palavras), 1, arquivo) == 1) {
     palavras = palavras_temp;
@@ -85,7 +82,6 @@ void exibir_palavras() {
 
   for (int i = 0; i < palavras.quantidade_atual; i++) {
     Palavra palavra = palavras.palavras_arquivo[i];
-
     palavra.string[0] = toupper(palavra.string[0]);
 
     printf("%d. %s\n", i + 1, palavra.string);
@@ -197,15 +193,43 @@ Palavra criar_nova_palavra(char *string) {
   return palavra;
 }
 
-char *ler_palavra_usuario() {
-  char *palavra = calloc(15, sizeof(char));
+int verifica_repeticao(char string[]) {//Desisto de tentar isso, tentar ler palavras.palavras_arquivo[i] n funciona
+  if (palavras.quantidade_atual < 1){
+    return 0;
+  }else {
+    FILE *arquivo = fopen(ARQUIVO_PALAVRAS, "rb");
+    if (arquivo == NULL) {
+      printf("Falha ao abrir arquivo\n");
+    }
+    Palavra palavra;
+    while (fread(&palavra, sizeof(Palavra), 1, arquivo) == 1){
+      if (strcasecmp(palavra.string, string) == 0) {
+        printf("Essa palavra já está registrada.\n");
+        fclose(arquivo);
+        return 1;
+      }
+    }
+    fclose(arquivo);
+    printf("Tudo certo na repetição! Eu acho...\n");
+    return 0;
+  }
+}
 
+char *ler_palavra_usuario(){
+  int validar;
+  char *palavra = calloc(15, sizeof(char));
   if (palavra == NULL) {
     return NULL;
   }
   printf("Digite uma palavra, com no mínimo 5 letras: ");
   // Evita espaços nas palavras do jogo
   scanf(" %s", palavra);
+  validar = verifica_repeticao(palavra);
+  if (validar == 1){
+    free(palavra);
+    printf("\nPor favor, digite outra palavra.\n");
+    return ler_palavra_usuario();
+  }
   return palavra;
 }
 
@@ -387,12 +411,12 @@ void o_jogo() { // Sim, você perdeu.
 
     if (jagura_cmp(palpite_palavra, palavra_secreta.string,
                    palavra_secreta.tamanho)) {
-      printf("Meus parabéns! Você ganhou!\n");
+      printf("Meus parabéns! Você ganhou!\n\n");
       if (contador_de_tentativas == 6) {
         printf("Uau! Você conseguiu adivinhar a palavra sem errar nenhuma "
                "letra!\n");
         pontuacao = pontuacao + 300;
-        printf("Pontuação Final: %d Pontos.\nObrigado por jogar!\n", pontuacao);
+        printf("Pontuação Final: %d Pontos.\nObrigado por jogar!\n\n", pontuacao);
         return;
       } else {
         printf("Pontuação Final: %d Pontos.\n Obrigado por jogar!\n\n",
