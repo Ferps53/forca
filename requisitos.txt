@@ -8,7 +8,7 @@
 - Deletar palavra -Done-
 - Rand para sortear as palavras -Done-
 - Fazer o jogo -Done-
-- Limpar o código
+- Limpar o código -Vou marcar como Done mas n sei-
 - Colocar comentários nas gambiarras -Done-
 - Tratar memory leaks -Done-
 - Implementar Pontuação -Done-

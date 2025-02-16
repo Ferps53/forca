@@ -1,11 +1,13 @@
+#include <complex.h>
 #include <ctype.h>
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <time.h>
 
-#define LIMITE_DE_PALAVRAS 10
+#define LIMITE_MINIMO_DE_PALAVRAS 10
 #define TAMANHO_ALFABETO 26
 #define ARQUIVO_PALAVRAS "palavras.bin"
 
@@ -16,19 +18,20 @@ typedef struct palavra {
 
 // Cache de palavras -> Segundo o Mestre Erinaldo isso é mais eficiente que ler
 // do disco;
-typedef struct palavras {
-  Palavra palavras_arquivo[100];
+typedef struct buffer {
+  Palavra buffer_arquivo[100];
   int quantidade_atual;
-} Palavras;
+} PalavrasBuffer;
 
 // Permite usar o struct em todo o código -- Global Elite
-Palavras palavras;
+PalavrasBuffer buffer;
 
 void verificacao_escolha_menu(int escolha_menu);
 int escolha_menu_principal();
 void ver_palavras_disponiveis();
 char *ler_palavra_usuario();
 Palavra criar_nova_palavra(char *string);
+void o_jogo();
 
 int escolha_menu_principal() {
   int escolha_menu;
@@ -42,13 +45,13 @@ int escolha_menu_principal() {
   printf("6.Sair\n");
   printf("Escolha uma das opções: ");
   scanf(" %d", &escolha_menu);
+
   verificacao_escolha_menu(escolha_menu);
   return escolha_menu;
 }
 
 void verificacao_escolha_menu(int escolha_menu) {
-  if (escolha_menu != 1 && escolha_menu != 2 && escolha_menu != 3 &&
-      escolha_menu != 4 && escolha_menu != 5 && escolha_menu != 6) {
+  if (escolha_menu <= 0 || escolha_menu > 6) {
     printf("Insira uma opção válida\n");
     escolha_menu_principal();
   }
@@ -70,10 +73,10 @@ void ler_palavras_arquivo() {
     fclose(arquivo);
     ler_palavras_arquivo();
   }
-  Palavras palavras_temp;
+  PalavrasBuffer buffer_temp;
   // Caso ocorrer uma falha no fread o buffer n recebe dados corrompidos
-  if (fread(&palavras_temp, sizeof(Palavras), 1, arquivo) == 1) {
-    palavras = palavras_temp;
+  if (fread(&buffer_temp, sizeof(PalavrasBuffer), 1, arquivo) == 1) {
+    buffer = buffer_temp;
   } else {
     printf("Falha ao ler palavras, mantendo ultimo estado\n");
     printf("Ou o arquivo estava vazio  ¯\\_(ツ)_/¯\n\n");
@@ -83,18 +86,21 @@ void ler_palavras_arquivo() {
 }
 void exibir_palavras() {
 
-  if (palavras.quantidade_atual <= 0) {
+  if (buffer.quantidade_atual <= 0) {
     printf("Em questão de palavras, não temos palavras\n");
   }
 
-  for (int i = 0; i < palavras.quantidade_atual; i++) {
-    Palavra palavra = palavras.palavras_arquivo[i];
+  for (int i = 0; i < buffer.quantidade_atual; i++) {
+    Palavra palavra = buffer.buffer_arquivo[i];
+
+    // Faz a primeira letra sempre ser maiusucla quando for exibida
     palavra.string[0] = toupper(palavra.string[0]);
 
     printf("%d. %s\n", i + 1, palavra.string);
   }
 }
 
+// Gera uma nova palavra e valida o input do usuario
 int nova_palavra_usuario(Palavra *palavra) {
   char *string = ler_palavra_usuario();
 
@@ -126,7 +132,7 @@ void salvar_buffer_palavras_arquivo() {
     exit(1);
   }
 
-  fwrite(&palavras, sizeof(Palavras), 1, arquivo);
+  fwrite(&buffer, sizeof(PalavrasBuffer), 1, arquivo);
 
   fclose(arquivo);
   arquivo = NULL;
@@ -140,8 +146,8 @@ void adicionar_palavra() {
   }
 
   // Adiciona no final do vetor do struct
-  palavras.palavras_arquivo[palavras.quantidade_atual] = palavra;
-  palavras.quantidade_atual++;
+  buffer.buffer_arquivo[buffer.quantidade_atual] = palavra;
+  buffer.quantidade_atual++;
 
   salvar_buffer_palavras_arquivo();
 }
@@ -149,13 +155,15 @@ void adicionar_palavra() {
 void atualizar_palavra() {
 
   int id = 0;
+  // Reaproveita a funcionalidade de exibir_palavras na tela.
   exibir_palavras();
   printf("Selecione o código de uma palavra que deseje alterar: ");
   scanf(" %d", &id);
   printf("\n");
 
-  if (id == 0 || id > palavras.quantidade_atual) {
+  if (id == 0 || id > buffer.quantidade_atual) {
     printf("O código inserido está inválido, tente novamente\n");
+    // Em caso de falhas rodar a função novamente
     atualizar_palavra();
     return;
   }
@@ -165,7 +173,10 @@ void atualizar_palavra() {
     return;
   }
 
-  palavras.palavras_arquivo[id - 1] = palavra;
+  // Salva a palavra no buffer com o id selecionado pelo user
+  buffer.buffer_arquivo[id - 1] = palavra;
+
+  // Salva as alterações feitas em memória no arquivo
   salvar_buffer_palavras_arquivo();
 }
 
@@ -177,8 +188,9 @@ void deletar_palavra() {
   scanf(" %d", &id);
   printf("\n");
 
-  if (id == 0 || id > palavras.quantidade_atual) {
+  if (id == 0 || id > buffer.quantidade_atual) {
     printf("O código inserido está inválido, tente novamente\n");
+    // Em caso de falha tenta novamente
     deletar_palavra();
     return;
   }
@@ -186,7 +198,7 @@ void deletar_palavra() {
   // Na tela inicia conta começando do um
   id -= 1;
 
-  char *string = palavras.palavras_arquivo[id].string;
+  char *string = buffer.buffer_arquivo[id].string;
 
   char confirmacao;
   printf("Tem certeza que quer deletar a palavra: %s?\n", string);
@@ -203,10 +215,10 @@ void deletar_palavra() {
 
   // Move os elementos de baixo do id selecionado para uma posição a frente e
   // remove o id selecionado
-  memmove(palavras.palavras_arquivo + id, palavras.palavras_arquivo + id + 1,
-          (100 - id) * sizeof(*palavras.palavras_arquivo));
+  memmove(buffer.buffer_arquivo + id, buffer.buffer_arquivo + id + 1,
+          (100 - id) * sizeof(*buffer.buffer_arquivo));
 
-  palavras.quantidade_atual--;
+  buffer.quantidade_atual--;
 
   salvar_buffer_palavras_arquivo();
 }
@@ -228,6 +240,8 @@ int calcular_tamanho_palavra(char *string) {
   return indice;
 }
 
+// O objetivo dessa função é facilitar a criação de uma palavra e
+// automaticamente calcular seu tamanho
 Palavra criar_nova_palavra(char *string) {
 
   int tamanho = calcular_tamanho_palavra(string);
@@ -243,29 +257,30 @@ Palavra criar_nova_palavra(char *string) {
   return palavra;
 }
 
-int verifica_repeticao(char string[]) {//Desisto de tentar isso, tentar ler palavras.palavras_arquivo[i] n funciona
-  if (palavras.quantidade_atual < 1){
+// Valida se existe uma palavra com a mesma string no arquivo
+int verifica_repeticao(char string[]) {
+  if (buffer.quantidade_atual < 1) {
     return 0;
-  }else {
-    FILE *arquivo = fopen(ARQUIVO_PALAVRAS, "rb");
-    if (arquivo == NULL) {
-      printf("Falha ao abrir arquivo\n");
-    }
-    Palavra palavra;
-    while (fread(&palavra, sizeof(Palavra), 1, arquivo) == 1){
-      if (strcasecmp(palavra.string, string) == 0) {
+  } else {
+
+    for (int i = 0; i < buffer.quantidade_atual; i++) {
+
+      // Como o buffer é um reflexo do arquivo, n é necessário fazer a leitura
+      // do arquivo
+      char *string_arquivo = buffer.buffer_arquivo[i].string;
+
+      // strcasecmp faz a validação de maiuscula e minusculas em strings
+      if (strcasecmp(string, string_arquivo) == 0) {
         printf("Essa palavra já está registrada.\n");
-        fclose(arquivo);
         return 1;
       }
     }
-    fclose(arquivo);
-    printf("Tudo certo na repetição! Eu acho...\n");
+
     return 0;
   }
 }
 
-char *ler_palavra_usuario(){
+char *ler_palavra_usuario() {
   int validar;
   char *palavra = calloc(15, sizeof(char));
   if (palavra == NULL) {
@@ -276,7 +291,7 @@ char *ler_palavra_usuario(){
   // Evita espaços nas palavras do jogo
   scanf(" %s", palavra);
   validar = verifica_repeticao(palavra);
-  if (validar == 1){
+  if (validar == 1) {
     free(palavra);
     printf("\nPor favor, digite outra palavra.\n");
     return ler_palavra_usuario();
@@ -287,17 +302,13 @@ char *ler_palavra_usuario(){
 int gerar_numero_da_palavra_aleatoria() {
   srand(time(NULL));
 
-  int numero_aleatorio = rand() % palavras.quantidade_atual;
-
-  printf("%d\n", numero_aleatorio);
-  printf("Quantidade atual de palavras: %d\n", palavras.quantidade_atual);
+  int numero_aleatorio = rand() % buffer.quantidade_atual;
   return numero_aleatorio;
 }
 
 Palavra definir_palavra_aleatoria() {
   int numero_da_palavra = gerar_numero_da_palavra_aleatoria();
-  Palavra palavra_secreta = palavras.palavras_arquivo[numero_da_palavra];
-  printf("%s\n", palavra_secreta.string);
+  Palavra palavra_secreta = buffer.buffer_arquivo[numero_da_palavra];
   // Palavra aleatória definida
   return palavra_secreta;
 }
@@ -391,13 +402,68 @@ int jaguara_cmp(char *s1, char *s2, int tamanho_da_palavra_secreta) {
   return 1;
 }
 
+// Realiza a validação se o usuário ganhou nessa 'rodada'
+int validar_se_ganhou(char *palpite, Palavra secreta, int tentativas,
+                      int pontuacao) {
+
+  if (jaguara_cmp(palpite, secreta.string, secreta.tamanho)) {
+    printf("Meus parabéns! Você ganhou!\n\n");
+
+    if (tentativas == 6) {
+      printf("Uau! Você conseguiu adivinhar a palavra sem errar nenhuma "
+             "letra!\n");
+      pontuacao = pontuacao + 300;
+    }
+
+    return 1;
+  }
+
+  return 0;
+}
+
+// Caso retornar 1 manda de volta para o menu principal
+int menu_fim_jogo() {
+
+  int escolha_menu = 0;
+
+  printf("1. Novo Jogo\n");
+  printf("2. Menu Inicial\n");
+  printf("3. Sair\n");
+
+  printf("Escolha uma das opções: ");
+  scanf(" %d", &escolha_menu);
+
+  if (escolha_menu == 0 || escolha_menu > 3) {
+    printf("Escolha inválida, tente novamente");
+    return menu_fim_jogo();
+  }
+
+  switch (escolha_menu) {
+
+  case 1: {
+    o_jogo();
+    return 1;
+    break;
+  }
+  case 2: {
+    return 1;
+  }
+  case 3: {
+    printf("Saindo... Até mais!\n");
+    exit(0);
+  }
+  }
+
+  return 0;
+}
+
 void o_jogo() { // Sim, você perdeu.
                 // Nãããão, eu perdi o jogoooooo!
-  if (palavras.quantidade_atual < LIMITE_DE_PALAVRAS) {
+  if (buffer.quantidade_atual < LIMITE_MINIMO_DE_PALAVRAS) {
     printf("São necessárias no mínimo %d palavras para poder jogar\n",
-           LIMITE_DE_PALAVRAS);
+           LIMITE_MINIMO_DE_PALAVRAS);
     printf("No momento faltam: %d\n",
-           LIMITE_DE_PALAVRAS - palavras.quantidade_atual);
+           LIMITE_MINIMO_DE_PALAVRAS - buffer.quantidade_atual);
     return;
   }
 
@@ -414,7 +480,7 @@ void o_jogo() { // Sim, você perdeu.
   printf("Hora de Adivinhar. Você tem 6 tentativas...\n");
   printf("%s\n", palpite_palavra);
 
-  char letras_usadas[26];
+  char letras_usadas[TAMANHO_ALFABETO];
   int contador_letras_usadas = 0;
   inicializar_vetor_letras_usadas(letras_usadas);
 
@@ -425,6 +491,8 @@ void o_jogo() { // Sim, você perdeu.
   int contador_de_tentativas = 6;
   int pontuacao = 0;
   int acertos_consecutivos = 0;
+
+  // Continua o jogo enquanto tiver tentativas
   while (contador_de_tentativas > 0) {
     char palpite_letra;
     printf("Advinhe uma letra da palavra: ");
@@ -456,23 +524,18 @@ void o_jogo() { // Sim, você perdeu.
       printf("Não foi dessa vez :(\n");
     }
 
-    printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
+    if (validar_se_ganhou(palpite_palavra, palavra_secreta,
+                          contador_de_tentativas, pontuacao)) {
 
-    if (jaguara_cmp(palpite_palavra, palavra_secreta.string,
-                    palavra_secreta.tamanho)) {
-      printf("Meus parabéns! Você ganhou!\n\n");
-      if (contador_de_tentativas == 6) {
-        printf("Uau! Você conseguiu adivinhar a palavra sem errar nenhuma "
-               "letra!\n");
-        pontuacao = pontuacao + 300;
-        printf("Pontuação Final: %d Pontos.\nObrigado por jogar!\n\n", pontuacao);
-        return;
-      } else {
-        printf("Pontuação Final: %d Pontos.\n Obrigado por jogar!\n\n",
-               pontuacao);
+      printf("Pontuação Final: %d Pontos.\nObrigado por jogar!\n\n", pontuacao);
+      // caso o user ganhar quebra o loop
+      if (menu_fim_jogo() == 1) {
         return;
       }
     }
+
+    printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
+
     printf("%s\n", palpite_palavra);
     printf("Letras usadas: ");
     for (int i = 0; i < contador_letras_usadas; i++) {
@@ -483,6 +546,15 @@ void o_jogo() { // Sim, você perdeu.
   printf("Você Perdeu! Acabaram suas tentativas!\n");
   printf("A palavra era: %s.\n", palavra_secreta.string);
   printf("Pontuação Final:%d\nObrigado por jogar!\n\n", pontuacao);
+
+  if (pontuacao < 0) {
+    printf("Vai ter que jogar denovo para pagar sua dívida de pontuação\n");
+  }
+
+  // Retorna para o menu principal
+  if (menu_fim_jogo() == 1) {
+    return;
+  }
 }
 
 int main() {
