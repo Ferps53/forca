@@ -33,13 +33,16 @@ Palavra criar_nova_palavra(char *string);
 
 int escolha_menu_principal() {
   int escolha_menu;
+
+  printf("--Menu Principal--\n\n");
   printf("1.Novo jogo\n");
   printf("2.Ver palavras\n");
   printf("3.Adicionar palavra\n");
   printf("4.Editar palavras\n");
   printf("5.Deletar palavras\n");
   printf("6.Sair\n");
-  scanf("%d", &escolha_menu);
+  printf("Escolha uma das opções: ");
+  scanf(" %d", &escolha_menu);
   verificacao_escolha_menu(escolha_menu);
   return escolha_menu;
 }
@@ -56,9 +59,12 @@ void ler_palavras_arquivo() {
 
   FILE *arquivo = fopen(ARQUIVO_PALAVRAS, "rb");
 
+  // Caso houver uma falha para ler o arquivo, pode ser que o mesmo n exista.
+  // Ou seja é realizada a criação do arquivo e chamada a função novamente.
   if (arquivo == NULL) {
     arquivo = fopen(ARQUIVO_PALAVRAS, "wb");
 
+    // Se falhar novamente fechar o programa.
     if (arquivo == NULL) {
       printf("Falha ao ler arquivo ;(\n");
       exit(1);
@@ -69,6 +75,7 @@ void ler_palavras_arquivo() {
   }
 
   Palavras palavras_temp;
+  // Caso ocorrer uma falha no fread o buffer n recebe dados corrompidos
   if (fread(&palavras_temp, sizeof(Palavras), 1, arquivo) == 1) {
     palavras = palavras_temp;
   } else {
@@ -99,6 +106,7 @@ int nova_palavra_usuario(Palavra *palavra) {
   if (string == NULL) {
     return 0;
   }
+
   *palavra = criar_nova_palavra(string);
 
   free(string);
@@ -198,7 +206,8 @@ void deletar_palavra() {
 
   printf("Deletando palavra: %s...\n", string);
 
-  // Move os elementos de baixo do id selecionado para uma posição a frente e remove o id selecionado
+  // Move os elementos de baixo do id selecionado para uma posição a frente e
+  // remove o id selecionado
   memmove(palavras.palavras_arquivo + id, palavras.palavras_arquivo + id + 1,
           (100 - id) * sizeof(*palavras.palavras_arquivo));
 
@@ -232,7 +241,7 @@ Palavra criar_nova_palavra(char *string) {
 
   // Merito de Matheus Ris
   // A falta de um strcpy me fez ficar 30min tentando resolver um segfault
-  //  Palavra palavra = {string, tamanho} -> n funcionava
+  // Palavra palavra = {string, tamanho} -> n funcionava
   strcpy(palavra.string, string);
   palavra.tamanho = tamanho;
 
@@ -245,6 +254,7 @@ char *ler_palavra_usuario() {
   if (palavra == NULL) {
     return NULL;
   }
+
   printf("Digite uma palavra, com no mínimo 5 letras: ");
   // Evita espaços nas palavras do jogo
   scanf(" %s", palavra);
@@ -423,13 +433,12 @@ void o_jogo() { // Sim, você perdeu.
       contador_de_tentativas--;
       pontuacao = pontuacao - 5;
       printf("Não foi dessa vez :(\n");
-      printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
     }
 
     printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
 
     if (jaguara_cmp(palpite_palavra, palavra_secreta.string,
-                   palavra_secreta.tamanho)) {
+                    palavra_secreta.tamanho)) {
       printf("Meus parabéns! Você ganhou!\n");
       if (contador_de_tentativas == 6) {
         printf("Uau! Você conseguiu adivinhar a palavra sem errar nenhuma "
