@@ -339,7 +339,7 @@ void preencher_palpites(char palpite, char *palpite_palavra,
 
 // A strcmp n funcionava com palavras com 5 de tamanho,
 // por isso essa função foi feita
-int jagura_cmp(char *s1, char *s2, int tamanho_da_palavra_secreta) {
+int jaguara_cmp(char *s1, char *s2, int tamanho_da_palavra_secreta) {
 
   for (int i = 0; s2[i] != '\0'; i++) {
 
@@ -422,12 +422,13 @@ void o_jogo() { // Sim, você perdeu.
       acertos_consecutivos = 0;
       contador_de_tentativas--;
       pontuacao = pontuacao - 5;
+      printf("Não foi dessa vez :(\n");
       printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
     }
 
     printf("Você ainda tem %d tentativas...\n", contador_de_tentativas);
 
-    if (jagura_cmp(palpite_palavra, palavra_secreta.string,
+    if (jaguara_cmp(palpite_palavra, palavra_secreta.string,
                    palavra_secreta.tamanho)) {
       printf("Meus parabéns! Você ganhou!\n");
       if (contador_de_tentativas == 6) {
