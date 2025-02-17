@@ -9,10 +9,11 @@
 
 #define LIMITE_MINIMO_DE_PALAVRAS 10
 #define TAMANHO_ALFABETO 26
+#define TAMANHO_MAXIMO_PALAVRA 15
 #define ARQUIVO_PALAVRAS "palavras.bin"
 
 typedef struct palavra {
-  char string[15];
+  char string[TAMANHO_MAXIMO_PALAVRA];
   int tamanho;
 } Palavra;
 
@@ -78,7 +79,7 @@ void ler_palavras_arquivo() {
   if (fread(&buffer_temp, sizeof(PalavrasBuffer), 1, arquivo) == 1) {
     buffer = buffer_temp;
   } else {
-    printf("Falha ao ler palavras, mantendo ultimo estado\n");
+    printf("Falha ao ler palavras\n");
     printf("Ou o arquivo estava vazio  ¯\\_(ツ)_/¯\n\n");
   }
 
@@ -88,6 +89,7 @@ void exibir_palavras() {
 
   if (buffer.quantidade_atual <= 0) {
     printf("Em questão de palavras, não temos palavras\n");
+    return;
   }
 
   for (int i = 0; i < buffer.quantidade_atual; i++) {
@@ -154,6 +156,12 @@ void adicionar_palavra() {
 
 void atualizar_palavra() {
 
+  // Caso não existir palavras cadastradas sair da função
+  if (buffer.quantidade_atual == 0) {
+    printf("Não existem palavras cadastradas para atualizar, tente cadastrar uma palavra\n");
+    return;
+  }
+
   int id = 0;
   // Reaproveita a funcionalidade de exibir_palavras na tela.
   exibir_palavras();
@@ -181,6 +189,12 @@ void atualizar_palavra() {
 }
 
 void deletar_palavra() {
+
+  // Caso não existir palavras cadastradas sair da função
+  if (buffer.quantidade_atual == 0) {
+    printf("Não existem palavras cadastradas para deletar, tente cadastrar uma palavra\n");
+    return;
+  }
 
   int id = 0;
   exibir_palavras();
@@ -230,7 +244,7 @@ int calcular_tamanho_palavra(char *string) {
   while (string[indice] != '\0' && string[indice] != '\n') {
     indice++;
 
-    if (indice >= 15) {
+    if (indice >= TAMANHO_MAXIMO_PALAVRA) {
       free(string);
       printf("Overflow de string ao calcular_tamanho_palavra");
       exit(1);
