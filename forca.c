@@ -8,8 +8,11 @@
 #include <time.h>
 
 #define LIMITE_MINIMO_DE_PALAVRAS 10
+#define LIMITE_MAXIMO_PALAVRAS 100
+
 #define TAMANHO_ALFABETO 26
 #define TAMANHO_MAXIMO_PALAVRA 15
+
 #define ARQUIVO_PALAVRAS "palavras.bin"
 
 typedef struct palavra {
@@ -20,7 +23,7 @@ typedef struct palavra {
 // Cache de palavras -> Segundo o Mestre Erinaldo isso é mais eficiente que ler
 // do disco;
 typedef struct buffer {
-  Palavra buffer_arquivo[100];
+  Palavra buffer_arquivo[LIMITE_MAXIMO_PALAVRAS];
   int quantidade_atual;
 } PalavrasBuffer;
 
@@ -158,7 +161,8 @@ void atualizar_palavra() {
 
   // Caso não existir palavras cadastradas sair da função
   if (buffer.quantidade_atual == 0) {
-    printf("Não existem palavras cadastradas para atualizar, tente cadastrar uma palavra\n");
+    printf("Não existem palavras cadastradas para atualizar, tente cadastrar "
+           "uma palavra\n");
     return;
   }
 
@@ -192,7 +196,8 @@ void deletar_palavra() {
 
   // Caso não existir palavras cadastradas sair da função
   if (buffer.quantidade_atual == 0) {
-    printf("Não existem palavras cadastradas para deletar, tente cadastrar uma palavra\n");
+    printf("Não existem palavras cadastradas para deletar, tente cadastrar uma "
+           "palavra\n");
     return;
   }
 
@@ -230,7 +235,7 @@ void deletar_palavra() {
   // Move os elementos de baixo do id selecionado para uma posição a frente e
   // remove o id selecionado
   memmove(buffer.buffer_arquivo + id, buffer.buffer_arquivo + id + 1,
-          (100 - id) * sizeof(*buffer.buffer_arquivo));
+          (LIMITE_MAXIMO_PALAVRAS - id) * sizeof(*buffer.buffer_arquivo));
 
   buffer.quantidade_atual--;
 
@@ -295,6 +300,12 @@ int verifica_repeticao(char string[]) {
 }
 
 char *ler_palavra_usuario() {
+
+  if (buffer.quantidade_atual == LIMITE_MAXIMO_PALAVRAS) {
+    printf("Foi atingido o limite máximo de palavras");
+    return NULL;
+  }
+
   int validar;
   char *palavra = calloc(15, sizeof(char));
   if (palavra == NULL) {
